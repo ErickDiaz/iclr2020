@@ -1,0 +1,122 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2020_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+\defcitealias{10665-275867}{(WHO, 2018)}
+\defcitealias{9789241549127}{(WHO, 2015)}
+
+
+\title{Classification and Detection of  \textit{Plasmodium \\ Vivax} Infected Cells in  Blood Smears Images}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\author{Erick W. D\'iaz \& Jorge A. Balsells\\
+Universidad San Carlos de Guatemala \\ 
+\texttt{ewdiazsa@gmail.com} \\
+\texttt{jorgebalsells@gmail.com} \\
+\And  Allan Orozco \\
+Industrial Enginnering University of Costa Rica, \\
+School of Health Technologies, University of Costa Rica \\
+\texttt{allan.orozcosolano@ucr.ac.cr}
+}
+
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+
+
+%\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+In Guatemala, the current techniques used for the diagnosis of \textit{P. Vivax} malaria parasite are not very efficient causing a delay in the diagnosis, these techniques are the microscopic examination of the protozoan through two types of blood films: thick blood smear and peripheral smear.  The research carried out consisted of creating a detection system automatic in images containing four of the \textit{P. Vivax} parasite, using two different CNN architectures (YOLO and U-Net) and different sets of configurations for each model. The results were satisfactory and the convolutional architecture YOLO managed to classify the trophozoite, schizont and gamete phases of the \textit{P. Vivax} parasite present in blood smear images. Code is available: \url{https://github.com/ErickDiaz/bioinformatic_thesis_project/tree/dev}
+\end{abstract}
+
+
+\section{Introduction}
+According to the World Health Organization (WHO) report, malaria caused 435,000 deaths worldwide in 2017 \citetalias{10665-275867}. Currently, the standard method for detecting and diagnosing malaria is through using a microscopic under observation through an extended and smear of Blood colocated on a slide \citetalias{9789241549127}. In Guatemala, this type of diagnosis ( \textit{P Vivax malaria}) has several disadvantages, trained and experienced microscopist personnel are needed to identify and quantify the parasite in the thick drop (gold standard) and blood smears. There is also a high workload for the staff on the area in which the disease is concentrated; high estimated time in observation of blood films, on average a trained person observes a thick blood film for 10 to 20 minutes, in endemic areas a health center can receive between 200 and 300 weekly blood films, producing ocular fatigue, which is usually is the most influential factor in an incorrect diagnosis. Automation test through CNN networks it could accelerate diagnoses, increase the efficiency and performance of specialists.
+
+
+\section{Dataset}
+
+We used image set \textit{P. Vivax} (malaria) infected human blood smears, accession number BBBC041 version 1, available from the Broad Bioimage Benchmark Collection \citep{Ljosa2012}.
+The images in the dataset contains 1,364 images, with a total of 80,113 labeled cells, different researches contributed labeling each cell in the dataset. These images were contributed by Jane Hung of MIT and the Broad Institute in Cambridge, MA. Each cell in the biological images has a class label an the bounding box coordinates, for the infected cell he have four classes gametocytes, rings, trophozoites and schizonts.
+
+
+\section{Methodology}
+\label{gen_inst}
+We are running multiple experiments using two different CNN architectures and different sets of configurations for each model. For image segmentation, we are using U-Net \citep{10.1007/978-3-319-24574-4_28} and for object detection and classification, we decided to experiment with YOLO\citep{yolo}. 
+For U-Net we developed the architecture using Tensorflow, for the loss function of the model we used Bray–Curtis dissimilarity as IoU for the cost function.  For the training of YOLO model, we used the original repository, after the model was trained with the original dataset we use transfer learning to continue the training with the augmented datasets.
+
+
+\subsection{Data Augmentation}
+In order to increase the training data and remove the imbalance of the dataset for one of the classes and improve the generalization ability of the models, we fist cropped all parasites form images using the bounding box location and augmented these images with rotations, then we generated a method that randomly adds parasites into the training images that had less than four parasites, the method always add the parasite class that has fewer occurrences.
+
+
+\section{Results}
+\label{headings}
+In table~\ref{results-table} there is a quantitative comparison of the model results on the test dataset.
+
+\begin{figure}[h]
+\begin{center}
+    \begin{minipage}{0.50\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/unet-256_2561.png}
+     \end{minipage}\hfill
+    \begin{minipage}{0.50\textwidth}
+        \includegraphics[width=\linewidth]{images/YOLOv2-1024_10245.png}
+    \end{minipage}
+\end{center}
+\caption{Training models metrics.}
+\end{figure}
+
+\begin{table}[h]
+\caption{Quantitative comparison of the architectures.}
+\label{results-table}
+\begin{center}
+\begin{tabular}{lllll}
+\multicolumn{1}{c}{\bf Model}  &\multicolumn{1}{c}{\bf IoU} 
+&\multicolumn{1}{c}{\bf Precision} &\multicolumn{1}{c}{\bf Recall}
+&\multicolumn{1}{c}{\bf F1 Score}
+\\ \hline \\
+U-Net &71.1\%	&27.81\%	&44.29\%	&34.16\%\\
+YOLO &77.17\% &45.41\% &3.77\% &6.96\%\\ 
+YOLO 1st augmented dataset  &77.19\%  &41.56\%	&4.08\%	&7.44\% \\
+YOLO 2nd augmented dataset  &84.85\%  &57.26\%	&5.13\%	&9.42\% \\
+YOLO 3rd augmented dataset  &83.66\%  &46.71\%	&7.16\%	&12.42\%
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{Conclutions}
+\label{headings}
+We were able to detect malaria parasites in the images, training the models with augmented datasets help to improve the performance of the models. In the future, we plan to extend this work, creating an ensemble prediction using both models and automating the whole process using a robotic arm for manipulating the blood samples.
+
+\subsubsection*{Acknowledgments}
+We thank Jane Hung of MIT and the Broad Institute in Cambridge, for publishing and making available this dataset, and all the researchers that prepared the images, Stefanie Lopes from Brazil, from Benoit Malleret Southeast Asia, and time course Gabriel Rangel. \\
+We thank to BIOCANET ISCB (USA).
+
+\bibliography{iclr2020_conference}
+\bibliographystyle{iclr2020_conference}
+
+\end{document}
